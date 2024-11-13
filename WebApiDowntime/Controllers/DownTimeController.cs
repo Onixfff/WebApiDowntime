@@ -82,9 +82,9 @@ namespace WebApiDowntime.Controllers
                 {
                     if (downtimes[i].Id == record.Id)
                     {
-                        downtimes[i].IdIdle = record.IdIdle;
-                        downtimes[i].Comment = record.Comment;
-                        downtimes[i].Recept = record.Recept;
+                        record.IdIdle = downtimes[i].IdIdle;
+                        record.Comment = downtimes[i].Comment;
+                        record.Recept = downtimes[i].Recept;
                     }
                 }
 
