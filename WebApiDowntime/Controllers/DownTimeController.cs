@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using WebApiDowntime.Context;
 using WebApiDowntime.Models;
 
@@ -51,12 +52,49 @@ namespace WebApiDowntime.Controllers
             return NotFound("No downtimes found in the given range.");
         }
 
-        [HttpPost("")]
-
-        [HttpPost("SetDowntime")]
-        public async Task<IActionResult> GetDownTimeAsync()
+        [HttpPut("PutDowntime")]
+        public async Task<IActionResult> GetDownTimeAsync([FromQuery] List<Downtime> downtimes)
         {
+            // Проверяем, что список не пустой
+            if (downtimes == null || !downtimes.Any())
+            {
+                return BadRequest("No data provided.");
+            }
 
+            // Получаем список идентификаторов из переданных данных
+            var isToUpdate = downtimes.Select(c => c.Id).ToList();
+
+            // Ищем записи в базе данных по идентификаторам
+            var recordsToUpdate = await _context.Downtimes
+                .Where(cr => isToUpdate.Contains(cr.Id) == false)
+                .ToListAsync();
+
+            if (!recordsToUpdate.Any())
+            {
+                return NotFound("No matching records found in the database.");
+            }
+
+            //TODO Исправить изменения чтобы не проходить по циклу каждый раз
+            // Обновляем поле Processed
+            foreach (var record in recordsToUpdate)
+            {
+                for(int i = 0; i < downtimes.Count; i++)
+                {
+                    if (downtimes[i].Id == record.Id)
+                    {
+                        downtimes[i].IdIdle = record.IdIdle;
+                        downtimes[i].Comment = record.Comment;
+                        downtimes[i].Recept = record.Recept;
+                    }
+                }
+
+                record.isUpdate = true;
+            }
+
+            // Сохраняем изменения в базе данных
+            await _context.SaveChangesAsync();
+
+            return Ok("Records updated successfully.");
         }
 
         [HttpGet("ComparisonResults")]
@@ -84,11 +122,11 @@ namespace WebApiDowntime.Controllers
             }
 
             // Получаем список идентификаторов из переданных данных
-            var idsToUpdate = comparisons.Select(c => c.Id).ToList();
+            var isToUpdate = comparisons.Select(c => c.Id).ToList();
 
             // Ищем записи в базе данных по идентификаторам
             var recordsToUpdate = await _context.ComparisonResults
-                .Where(cr => idsToUpdate.Contains(cr.Id))
+                .Where(cr => isToUpdate.Contains(cr.Id))
                 .ToListAsync();
 
             if (!recordsToUpdate.Any())

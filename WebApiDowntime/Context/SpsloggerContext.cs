@@ -195,6 +195,9 @@ public partial class SpsloggerContext : DbContext
             entity.Property(e => e.Recept).HasMaxLength(145);
             entity.Property(e => e.Timestamp).HasColumnType("datetime");
             entity.Property(e => e.TimestampEnd).HasColumnType("datetime");
+            entity.Property(e => e.isUpdate)
+    .HasDefaultValueSql("'1'")
+    .HasColumnName("processed");
 
             entity.HasOne(d => d.ReceptNavigation).WithMany(p => p.Downtimes)
                 .HasForeignKey(d => d.Recept)

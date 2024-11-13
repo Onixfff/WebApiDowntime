@@ -15,9 +15,11 @@ public partial class Downtime
 
     public int IdIdle { get; set; }
 
-    public string Comment { get; set; } = null!;
+    public string Comment { get; set; } = default!;
 
     public string? Recept { get; set; }
+
+    public bool? isUpdate { get; set; }
 
     public virtual Recepttime? ReceptNavigation { get; set; }
 }
