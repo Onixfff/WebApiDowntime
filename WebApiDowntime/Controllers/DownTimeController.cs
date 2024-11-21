@@ -39,6 +39,8 @@ namespace WebApiDowntime.Controllers
             // Получаем данные о простоях из базы
             var downtimes = await _context.Downtimes
                 .Where(date => date.Timestamp >= start && date.Timestamp <= end)
+                .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
+                .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
                 .ToListAsync();
 
             // Если записи найдены, возвращаем их
