@@ -11,7 +11,7 @@ namespace WebApiDowntime
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDbContext<SpsloggerContext>(options =>
+            builder.Services.AddDbContext<dbContext>(options =>
                             options.UseMySql(builder.Configuration.GetConnectionString("Server"),
                                 ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
 

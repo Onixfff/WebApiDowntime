@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using WebApiDowntime.Context;
 using WebApiDowntime.Models;
 
@@ -11,9 +10,9 @@ namespace WebApiDowntime.Controllers
     public class DownTimeController : ControllerBase
     {
         private readonly ILogger<DownTimeController> _logger;
-        private readonly SpsloggerContext _context;
+        private readonly dbContext _context;
 
-        public DownTimeController(ILogger<DownTimeController> logger, SpsloggerContext context)
+        public DownTimeController(ILogger<DownTimeController> logger, dbContext context)
         {
             _logger = logger;
             _context = context;
@@ -32,7 +31,7 @@ namespace WebApiDowntime.Controllers
         {
             //проверка на start и end
 
-            if(start >= end)
+            if (start >= end)
             {
                 return BadRequest("Start >= End");
             }
@@ -78,7 +77,7 @@ namespace WebApiDowntime.Controllers
             // Обновляем поле Processed
             foreach (var record in recordsToUpdate)
             {
-                for(int i = 0; i < downtimes.Count; i++)
+                for (int i = 0; i < downtimes.Count; i++)
                 {
                     if (downtimes[i].Id == record.Id)
                     {
@@ -88,7 +87,7 @@ namespace WebApiDowntime.Controllers
                     }
                 }
 
-                record.isUpdate = true;
+                record.IsUpdate = true;
             }
 
             // Сохраняем изменения в базе данных
@@ -104,7 +103,7 @@ namespace WebApiDowntime.Controllers
                 .Where(isComplite => isComplite.Processed == false)
                 .ToListAsync();
 
-            if (result.Any()) 
+            if (result.Any())
             {
                 return Ok(result);
             }

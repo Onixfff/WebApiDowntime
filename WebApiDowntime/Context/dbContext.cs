@@ -6,13 +6,13 @@ using WebApiDowntime.Models;
 
 namespace WebApiDowntime.Context;
 
-public partial class SpsloggerContext : DbContext
+public partial class dbContext : DbContext
 {
-    public SpsloggerContext()
+    public dbContext()
     {
     }
 
-    public SpsloggerContext(DbContextOptions<SpsloggerContext> options)
+    public dbContext(DbContextOptions<dbContext> options)
         : base(options)
     {
     }
@@ -26,6 +26,8 @@ public partial class SpsloggerContext : DbContext
     public virtual DbSet<Diagramm> Diagramms { get; set; }
 
     public virtual DbSet<Downtime> Downtimes { get; set; }
+
+    public virtual DbSet<Efmigrationshistory> Efmigrationshistories { get; set; }
 
     public virtual DbSet<ErrorMa> ErrorMas { get; set; }
 
@@ -52,8 +54,7 @@ public partial class SpsloggerContext : DbContext
     public virtual DbSet<Zugang> Zugangs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=192.168.100.100;database=spslogger;user=D_user;password=Aeroblock12345%", ServerVersion.Parse("8.0.22-mysql"));
+        => optionsBuilder.UseMySql("database=spslogger;server=192.168.100.100;port=3306;username=D_user;password=Aeroblock12345%", ServerVersion.Parse("8.0.22-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -77,9 +78,7 @@ public partial class SpsloggerContext : DbContext
                 .HasColumnType("time")
                 .HasColumnName("difference");
             entity.Property(e => e.EndTime).HasColumnType("datetime");
-            entity.Property(e => e.Processed)
-                .HasDefaultValueSql("'0'")
-                .HasColumnName("processed");
+            entity.Property(e => e.Processed).HasColumnName("processed");
             entity.Property(e => e.StartTime).HasColumnType("datetime");
             entity.Property(e => e.Table1Id).HasColumnName("table1_id");
             entity.Property(e => e.Table2Id).HasColumnName("table2_id");
@@ -184,6 +183,8 @@ public partial class SpsloggerContext : DbContext
 
             entity.HasIndex(e => e.Id, "Id_UNIQUE").IsUnique();
 
+            entity.HasIndex(e => e.IdIdle, "ididles => idles_idx");
+
             entity.HasIndex(e => e.Recept, "receptTime_idx");
 
             entity.Property(e => e.Comment)
@@ -192,16 +193,36 @@ public partial class SpsloggerContext : DbContext
                 .HasCharSet("utf8mb4");
             entity.Property(e => e.Difference).HasColumnType("time");
             entity.Property(e => e.IdIdle).HasColumnName("idIdle");
+            entity.Property(e => e.IsUpdate)
+                .IsRequired()
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("isUpdate");
             entity.Property(e => e.Recept).HasMaxLength(145);
             entity.Property(e => e.Timestamp).HasColumnType("datetime");
-            entity.Property(e => e.TimestampEnd).HasColumnType("datetime");
-            entity.Property(e => e.isUpdate)
-    .HasDefaultValueSql("'1'")
-    .HasColumnName("isUpdate");
+            entity.Property(e => e.TimestampEnd)
+                .HasDefaultValueSql("'2024-11-13 10:00:00'")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.IdIdleNavigation).WithMany(p => p.Downtimes)
+                .HasForeignKey(d => d.IdIdle)
+                .HasConstraintName("ididles => idles");
 
             entity.HasOne(d => d.ReceptNavigation).WithMany(p => p.Downtimes)
                 .HasForeignKey(d => d.Recept)
                 .HasConstraintName("receptTime");
+        });
+
+        modelBuilder.Entity<Efmigrationshistory>(entity =>
+        {
+            entity.HasKey(e => e.MigrationId).HasName("PRIMARY");
+
+            entity
+                .ToTable("__efmigrationshistory")
+                .HasCharSet("utf8mb4")
+                .UseCollation("utf8mb4_0900_ai_ci");
+
+            entity.Property(e => e.MigrationId).HasMaxLength(150);
+            entity.Property(e => e.ProductVersion).HasMaxLength(32);
         });
 
         modelBuilder.Entity<ErrorMa>(entity =>

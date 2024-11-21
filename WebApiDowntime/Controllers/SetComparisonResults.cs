@@ -1,4 +1,4 @@
-﻿namespace WebApiDowntime.Models
+﻿namespace WebApiDowntime.Controllers
 {
     public class SetComparisonResults
     {

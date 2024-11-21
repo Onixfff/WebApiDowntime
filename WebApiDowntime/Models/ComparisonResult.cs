@@ -1,4 +1,7 @@
-﻿namespace WebApiDowntime.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace WebApiDowntime.Models;
 
 public partial class ComparisonResult
 {
@@ -12,7 +15,7 @@ public partial class ComparisonResult
 
     public string Data52 { get; set; } = null!;
 
-    public bool? Processed { get; set; }
+    public bool Processed { get; set; }
 
     public DateTime StartTime { get; set; }
 
