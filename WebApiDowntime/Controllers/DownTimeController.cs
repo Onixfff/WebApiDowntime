@@ -47,6 +47,7 @@ namespace WebApiDowntime.Controllers
 
             if (timePeriod.IsFailure)
             {
+                _logger.LogError(timePeriod.Error);
                 return BadRequest($"{timePeriod.Error}");
             }
 
@@ -54,11 +55,11 @@ namespace WebApiDowntime.Controllers
             {
                 case TimePeriod.Day:
                     dateOnly = DateOnly.FromDateTime(date);
-                    start = new DateTime(dateOnly, _day);
-                    end = new DateTime(dateOnly, _night);
+                    start = dateOnly.ToDateTime(_day);
+                    end = dateOnly.ToDateTime(_night);
 
                     downtimes = await _context.Downtimes
-                    .Where(date => date.Timestamp >= start && date.Timestamp <= end && date.IsUpdate == false)
+                    .Where(date => date.Timestamp >= start && date.Timestamp < end || date.IsUpdate == false)
                     .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
                        .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
                        .ToListAsync();
@@ -66,12 +67,12 @@ namespace WebApiDowntime.Controllers
                     break;
                 case TimePeriod.Night:
                     dateOnly = DateOnly.FromDateTime(date);
-                    start = new DateTime(dateOnly, _night);
-                    dateOnly.AddDays(1);
-                    end = new DateTime(dateOnly, _day);
+                    start = dateOnly.ToDateTime(_night);
+                    dateOnly = dateOnly.AddDays(1);
+                    end = dateOnly.ToDateTime(_day);
 
                     downtimes = await _context.Downtimes
-                    .Where(date => date.Timestamp >= start && date.Timestamp <= end && date.IsUpdate == false)
+                    .Where(date => date.Timestamp >= start && date.Timestamp < end || date.IsUpdate == false)
                     .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
                        .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
                        .ToListAsync();
@@ -79,12 +80,12 @@ namespace WebApiDowntime.Controllers
                     break;
                 case TimePeriod.Morning:
                     dateOnly = DateOnly.FromDateTime(date);
-                    end = new DateTime(dateOnly, _day);
-                    dateOnly.AddDays(-1);
-                    start = new DateTime(dateOnly, _night);
+                    end = dateOnly.ToDateTime(_day);
+                    dateOnly = dateOnly.AddDays(-1);
+                    start = dateOnly.ToDateTime(_night);
 
                     downtimes = await _context.Downtimes
-                       .Where(date => date.Timestamp >= start && date.Timestamp <= end && date.IsUpdate == false)
+                       .Where(date => date.Timestamp >= start && date.Timestamp < end || date.IsUpdate == false)
                        .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
                        .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
                        .ToListAsync();
@@ -98,7 +99,7 @@ namespace WebApiDowntime.Controllers
             }
 
             // Если записи найдены, возвращаем их
-            if (downtimes.Any() && downtimes != null)
+            if (downtimes.Any())
             {
                 return Ok(downtimes);
             }
