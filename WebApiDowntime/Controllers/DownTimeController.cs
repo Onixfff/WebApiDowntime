@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using WebApiDowntime.Context;
 using WebApiDowntime.Errors;
 using WebApiDowntime.Models;
