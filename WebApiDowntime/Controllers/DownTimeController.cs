@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using WebApiDowntime.Context;
+using WebApiDowntime.Errors;
 using WebApiDowntime.Models;
+using WebApiDowntime.Services;
+using static WebApiDowntime.Services.TimeWork;
 
 namespace WebApiDowntime.Controllers
 {
@@ -11,40 +16,89 @@ namespace WebApiDowntime.Controllers
     {
         private readonly ILogger<DownTimeController> _logger;
         private readonly dbContext _context;
+        private readonly TimeWork _timeWork;
+        private readonly TimeOnly _day = new TimeOnly(8, 5, 00);
+        private readonly TimeOnly _night = new TimeOnly(20, 5, 00);
 
         public DownTimeController(ILogger<DownTimeController> logger, dbContext context)
         {
             _logger = logger;
             _context = context;
+            _timeWork = new TimeWork(_logger);
         }
 
         /// <summary>
         /// Возвращает все downtime в определенном периуде
         /// </summary>
-        /// <param name="start">Время начала поиска</param>
-        /// <param name="end">Время конца поиска</param>
         /// <returns>
-        /// Вернет list<Downtime> при успехе</returns>
-        // GET api/downtime?start=2024-01-01T00:00:00&end=2024-12-31T23:59:59
+        /// Вернет ?list<Downtime></returns>
+        // GET api/downtime
         [HttpGet("downtime")]  // Атрибут для маршрута GET
-        public async Task<IActionResult> GetDownTimeAsync([FromQuery] DateTime start, [FromQuery] DateTime end)
+        public async Task<IActionResult> GetDownTimeAsync(DateTime date)
         {
-            //проверка на start и end
+            //Заменить на поставку времени.
+            TimeSpan time = new TimeSpan(date.Hour, date.Minute, date.Second);
+            List<Downtime> downtimes;
+            Result<TimePeriod> timePeriod = _timeWork.GetTimeWork(time);
 
-            if (start >= end)
+            DateOnly dateOnly;
+            DateTime start;
+            DateTime end;
+
+            if (timePeriod.IsFailure)
             {
-                return BadRequest("Start >= End");
+                return BadRequest($"{timePeriod.Error}");
             }
 
-            // Получаем данные о простоях из базы
-            var downtimes = await _context.Downtimes
-                .Where(date => date.Timestamp >= start && date.Timestamp <= end)
-                .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
-                .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
-                .ToListAsync();
+            switch (timePeriod.Value)
+            {
+                case TimePeriod.Day:
+                    dateOnly = DateOnly.FromDateTime(date);
+                    start = new DateTime(dateOnly, _day);
+                    end = new DateTime(dateOnly, _night);
+
+                    downtimes = await _context.Downtimes
+                    .Where(date => date.Timestamp >= start && date.Timestamp <= end && date.IsUpdate == false)
+                    .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
+                       .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
+                       .ToListAsync();
+
+                    break;
+                case TimePeriod.Night:
+                    dateOnly = DateOnly.FromDateTime(date);
+                    start = new DateTime(dateOnly, _night);
+                    dateOnly.AddDays(1);
+                    end = new DateTime(dateOnly, _day);
+
+                    downtimes = await _context.Downtimes
+                    .Where(date => date.Timestamp >= start && date.Timestamp <= end && date.IsUpdate == false)
+                    .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
+                       .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
+                       .ToListAsync();
+
+                    break;
+                case TimePeriod.Morning:
+                    dateOnly = DateOnly.FromDateTime(date);
+                    end = new DateTime(dateOnly, _day);
+                    dateOnly.AddDays(-1);
+                    start = new DateTime(dateOnly, _night);
+
+                    downtimes = await _context.Downtimes
+                       .Where(date => date.Timestamp >= start && date.Timestamp <= end && date.IsUpdate == false)
+                       .Include(d => d.IdIdleNavigation) // Загрузить связь с Ididle
+                       .Include(d => d.ReceptNavigation) // Загрузить связь с Recepttime
+                       .ToListAsync();
+
+                    break;
+                default:
+                    string errorMessage = "Ошибка в недопустимом значении TimePeriod";
+                    var error = new DownTimesException(errorMessage, "53");
+                    _logger.LogError(error, errorMessage);
+                    return BadRequest(error);
+            }
 
             // Если записи найдены, возвращаем их
-            if (downtimes.Any())
+            if (downtimes.Any() && downtimes != null)
             {
                 return Ok(downtimes);
             }
