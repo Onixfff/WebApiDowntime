@@ -7,16 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Certificat\certificate.pfx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Certificat\certificate.pfx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
@@ -33,6 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Certificat\certificate.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Certificat\certificateClient.cer">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
