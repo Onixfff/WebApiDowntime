@@ -1,4 +1,4 @@
-@WebApiDowntime_HostAddress = http://localhost:5048
+@WebApiDowntime_HostAddress = https://192.168.100.100:5048
 
 GET {{WebApiDowntime_HostAddress}}/api/DownTime/downtime?date=2024-10-05T00:00:00
 Accept: application/json

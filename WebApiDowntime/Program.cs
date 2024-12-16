@@ -28,6 +28,14 @@ namespace WebApiDowntime
             // Регистрация контроллеров через DI
             builder.Services.AddScoped<DownTimeController>();
 
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenAnyIP(5048, listenOptions =>
+                {
+                    listenOptions.UseHttps("C:\\Users\\server\\Source\\Repos\\Onixfff\\WebApiDowntime\\WebApiDowntime\\Certificat\\certificate.pfx", "12345");
+                });
+            });
+
             var app = builder.Build();
 
             // Настройка пайплайна HTTP-запросов
@@ -38,7 +46,6 @@ namespace WebApiDowntime
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
 
             // Маршруты для контроллеров API
