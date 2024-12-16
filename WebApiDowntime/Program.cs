@@ -32,7 +32,7 @@ namespace WebApiDowntime
             {
                 options.ListenAnyIP(5048, listenOptions =>
                 {
-                    listenOptions.UseHttps("C:\\Users\\server\\Source\\Repos\\Onixfff\\WebApiDowntime\\WebApiDowntime\\Certificat\\certificate.pfx", "12345");
+                    listenOptions.UseHttps("C:\\c#\\WebApiDowntime\\WebApiDowntime\\Certificat\\certificate.pfx", "12345");
                 });
             });
 
