@@ -27,12 +27,13 @@ namespace WebApiDowntime
 
             // Регистрация контроллеров через DI
             builder.Services.AddScoped<DownTimeController>();
+            builder.Services.AddScoped<PLCPRU>();
 
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ListenAnyIP(5048, listenOptions =>
                 {
-                    listenOptions.UseHttps("C:\\c#\\WebApiDowntime\\WebApiDowntime\\Certificat\\certificate.pfx", "12345");
+                    listenOptions.UseHttps("C:\\Users\\server\\Source\\Repos\\Onixfff\\WebApiDowntime\\WebApiDowntime\\Certificat\\certificate.pfx", "12345");
                 });
             });
 
