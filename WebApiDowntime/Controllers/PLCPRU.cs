@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using S7.Net;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using WebApiDowntime.Models;
 
 namespace WebApiDowntime.Controllers
 {
+    [ApiController]  // Этот атрибут указывает, что класс является контроллером API
     [Route("api/[controller]")]
     public class PLCPRU : ControllerBase
     {
@@ -17,8 +20,8 @@ namespace WebApiDowntime.Controllers
             _loggerAdress = loggerAdress;
         }
 
-        [HttpGet("GetDatePRU")]
-        private async Task<List<Adress>> ReadValuesFromPLCAsync(string ipAddress, int dbNumber, List<int> addresses, CancellationToken cancellationToken)
+        [HttpPost("GetDatePRU")]
+        public async Task<List<Adress>> ReadValuesFromPLCAsync(string ipAddress, int dbNumber, List<int> addresses, CancellationToken cancellationToken)
         {
             List<Adress> adresses = new List<Adress>();
 
