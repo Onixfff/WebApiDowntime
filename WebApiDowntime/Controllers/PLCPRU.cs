@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using S7.Net;
+using WebApiDowntime.Models;
 
 namespace WebApiDowntime.Controllers
 {
@@ -7,16 +9,18 @@ namespace WebApiDowntime.Controllers
     public class PLCPRU : ControllerBase
     {
         private readonly ILogger<PLCPRU> _logger;
+        private readonly ILogger<Adress> _loggerAdress;
 
-        public PLCPRU(ILogger<PLCPRU> logger)
+        public PLCPRU(ILogger<PLCPRU> logger, ILogger<Adress> loggerAdress)
         {
             _logger = logger;
+            _loggerAdress = loggerAdress;
         }
 
         [HttpGet("GetDatePRU")]
-        private async Task<List<uint>> ReadValuesFromPLCAsync(string ipAddress, int dbNumber, List<int> addresses, CancellationToken cancellationToken)
+        private async Task<List<Adress>> ReadValuesFromPLCAsync(string ipAddress, int dbNumber, List<int> addresses, CancellationToken cancellationToken)
         {
-            var values = new List<uint>();
+            List<Adress> adresses = new List<Adress>();
 
             try
             {
@@ -35,10 +39,24 @@ namespace WebApiDowntime.Controllers
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var result = (uint)await plc.ReadAsync($"DB{dbNumber}.DBD{address}", cancellationToken);
-                        values.Add(result);
-                    }
+                        UInt32? result = (uint)await plc.ReadAsync($"DB{dbNumber}.DBD{address}", cancellationToken);
 
+                        if (result != 0 && result != null)
+                        {
+                            var resultAdress = Adress.Create(_loggerAdress, address, result);
+
+                            if (resultAdress.IsSuccess)
+                            {
+                                adresses.Add(resultAdress.Value);
+                            }
+                            else
+                            {
+                                var resultAdressZeroDate = Adress.CreateZeroDate(_loggerAdress, address, resultAdress.Error);
+                                adresses.Add(resultAdressZeroDate.Value);
+                            }
+                        }
+
+                    }
                     plc.Close();
                 }
             }
@@ -54,7 +72,7 @@ namespace WebApiDowntime.Controllers
             {
                 _logger.LogError(ex, "Неизвестная ошибка при чтении данных из PLC.");
             }
-            return values;
+            return adresses;
         }
 
     } 
