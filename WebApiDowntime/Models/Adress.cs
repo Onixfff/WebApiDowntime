@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApiDowntime.Models
 {
@@ -26,7 +27,7 @@ namespace WebApiDowntime.Models
         {
             string errorMessage;
 
-            if (error == null)
+            if (error != null)
             {
                 errorMessage = $"Ошибка ({error})";
                 logger.LogError(errorMessage);
@@ -48,15 +49,32 @@ namespace WebApiDowntime.Models
                 return Result.Failure<Adress>(errorMessage);
             }
 
-            Adress adress = new Adress(logger, addres, value, error);
+            Adress adress = new Adress(logger, addres, value, default);
 
             return Result.Success<Adress>(adress);
         }
 
-        public static Result<Adress> CreateZeroDate(ILogger<Adress> logger, int? addres, string error)
+        public static Result<Adress> CreateZeroDate(ILogger<Adress> logger, int? addres, string error = default)
         {
             Adress adress = new Adress(logger, addres, 0, error);
             return Result.Success<Adress>(adress);
         }
+
+        public AdressDto ToDto()
+        {
+            return new AdressDto
+            {
+                Addres = _addres,
+                Value = _value,
+                Error = _error
+            };
+        }
+    }
+
+    public class AdressDto
+    {
+        public int? Addres { get; set; }
+        public UInt32? Value { get; set; }
+        public string? Error { get; set; }
     }
 }

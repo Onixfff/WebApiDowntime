@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using S7.Net;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using WebApiDowntime.Models;
 
 namespace WebApiDowntime.Controllers
@@ -21,9 +18,9 @@ namespace WebApiDowntime.Controllers
         }
 
         [HttpPost("GetDatePRU")]
-        public async Task<List<Adress>> ReadValuesFromPLCAsync(string ipAddress, int dbNumber, List<int> addresses, CancellationToken cancellationToken)
+        public async Task<List<AdressDto>> ReadValuesFromPLCAsync(string ipAddress, int dbNumber, List<int> addresses, CancellationToken cancellationToken)
         {
-            List<Adress> adresses = new List<Adress>();
+            List<AdressDto> adresses = new List<AdressDto>();
 
             try
             {
@@ -44,18 +41,18 @@ namespace WebApiDowntime.Controllers
 
                         UInt32? result = (uint)await plc.ReadAsync($"DB{dbNumber}.DBD{address}", cancellationToken);
 
-                        if (result != 0 && result != null)
+                        if (result != null)
                         {
                             var resultAdress = Adress.Create(_loggerAdress, address, result);
 
                             if (resultAdress.IsSuccess)
                             {
-                                adresses.Add(resultAdress.Value);
+                                adresses.Add(resultAdress.Value.ToDto());
                             }
                             else
                             {
                                 var resultAdressZeroDate = Adress.CreateZeroDate(_loggerAdress, address, resultAdress.Error);
-                                adresses.Add(resultAdressZeroDate.Value);
+                                adresses.Add(resultAdressZeroDate.Value.ToDto());
                             }
                         }
 
