@@ -41,9 +41,10 @@ namespace WebApiDowntime.Controllers
 
                         UInt32? result = (uint)await plc.ReadAsync($"DB{dbNumber}.DBD{address}", cancellationToken);
 
+                        var resultAdress = Adress.Create(_loggerAdress, address, result);
+
                         if (result != null)
                         {
-                            var resultAdress = Adress.Create(_loggerAdress, address, result);
 
                             if (resultAdress.IsSuccess)
                             {
@@ -54,6 +55,11 @@ namespace WebApiDowntime.Controllers
                                 var resultAdressZeroDate = Adress.CreateZeroDate(_loggerAdress, address, resultAdress.Error);
                                 adresses.Add(resultAdressZeroDate.Value.ToDto());
                             }
+                        }
+                        else
+                        {
+                            var resultAdressZeroDate = Adress.CreateZeroDate(_loggerAdress, address, resultAdress.Error);
+                            adresses.Add(resultAdressZeroDate.Value.ToDto());
                         }
 
                     }
