@@ -75,5 +75,58 @@ namespace WebApiDowntime.Controllers
             return adresses;
         }
 
+        [HttpPost("GetDatePRUInAdres")]
+        public async Task<AdressDto> ReadValuesFromPLCInAdressAsync(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
+        {
+            AdressDto adresses = new AdressDto();
+
+            try
+            {
+                // Создаём соединение с PLC
+                using (var plc = new Plc(CpuType.S7300, ipAddress, 0, 2))
+                {
+                    await plc.OpenAsync(cancellationToken);
+
+                    if (!plc.IsConnected)
+                    {
+                        throw new Exception("Не удалось подключиться к PLC.");
+                    }
+
+                    // Читаем данные из указанного адреса
+                    
+                    UInt32? result = (uint)await plc.ReadAsync($"DB{dbNumber}.DBD{addresses}", cancellationToken);
+
+                    if (result != null)
+                    {
+                        var resultAdress = Adress.Create(_loggerAdress, addresses, result);
+
+                        if (resultAdress.IsSuccess)
+                        {
+                            adresses = resultAdress.Value.ToDto();
+                        }
+                        else
+                        {
+                            var resultAdressZeroDate = Adress.CreateZeroDate(_loggerAdress, addresses, resultAdress.Error);
+                            adresses = resultAdressZeroDate.Value.ToDto();
+                        }
+                    }
+
+                    plc.Close();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Операция чтения из PLC была отменена.");
+            }
+            catch (PlcException ex)
+            {
+                _logger.LogError(ex, "Ошибка PLC");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Неизвестная ошибка при чтении данных из PLC.");
+            }
+            return adresses;
+        }
     } 
 }
