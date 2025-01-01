@@ -1,11 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using S7.Net;
-using System.Linq.Expressions;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using WebApiDowntime.Models;
 
 namespace WebApiDowntime.Controllers
@@ -16,7 +11,7 @@ namespace WebApiDowntime.Controllers
     {
         private readonly ILogger<PLCPRU> _logger;
         private readonly ILogger<Adress> _loggerAdress;
-        private string _errorMessage;
+        private string? _errorMessage;
 
         public PLCPRU(ILogger<PLCPRU> logger, ILogger<Adress> loggerAdress)
         {
