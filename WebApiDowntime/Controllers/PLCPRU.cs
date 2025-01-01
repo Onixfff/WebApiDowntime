@@ -38,7 +38,7 @@ namespace WebApiDowntime.Controllers
 
                     if (!plc.IsConnected)
                     {
-                        throw new Exception("Не удалось подключиться к PLC.");
+                        throw new PlcException(ErrorCode.ConnectionError, "Не удалось подключиться к PLC.");
                     }
 
                     // Читаем данные из указанных адресов
@@ -126,7 +126,7 @@ namespace WebApiDowntime.Controllers
 
                     if (!plc.IsConnected)
                     {
-                        throw new Exception("Не удалось подключиться к PLC.");
+                        throw new PlcException(ErrorCode.ConnectionError, "Не удалось подключиться к PLC.");
                     }
 
                     // Читаем данные из указанного адреса
@@ -190,7 +190,7 @@ namespace WebApiDowntime.Controllers
 
                     if (!plc.IsConnected)
                     {
-                        throw new Exception("Не удалось подключиться к PLC.");
+                        throw new PlcException(ErrorCode.ConnectionError, "Не удалось подключиться к PLC.");
                     }
 
                     // Читаем данные из указанного адреса
