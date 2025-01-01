@@ -89,24 +89,31 @@ namespace WebApiDowntime.Controllers
         }
 
         [HttpPost("ChangeDatePRU")]
-        public async Task<bool> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, CancellationToken cancellationToken)
+        public async Task<bool> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, int lastMas, CancellationToken cancellationToken)
         {
-            AdressDto adressDto = await ReadValuesFromPLCInAdressAsync(ipAddress, dbNumber, addresses, cancellationToken);
-            
-            if(adressDto == null)
-            {
-                Result result = await ChangeValueFromPLCAdressAsync(ipAddress, dbNumber, addresses, mas, cancellationToken);
+            Result<AdressDto> resultAdresDto = await ReadValuesFromPLCInAdressAsync(ipAddress, dbNumber, addresses, cancellationToken);
 
-                if (result.IsFailure)
-                    return false;
+            if(resultAdresDto.IsSuccess)
+            {
+                if (lastMas == resultAdresDto.Value.Value)
+                {
+                    Result result = await ChangeValueFromPLCAdressAsync(ipAddress, dbNumber, addresses, mas, cancellationToken);
+
+                    if (result.IsFailure)
+                        return false;
+                    else
+                        return true;
+                }
                 else
-                    return true;
+                {
+                    return false;
+                }
             }
 
             return false;
         }
 
-        private async Task<AdressDto> ReadValuesFromPLCInAdressAsync(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
+        private async Task<Result<AdressDto>> ReadValuesFromPLCInAdressAsync(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
         {
             AdressDto adresses = new AdressDto();
 
@@ -150,19 +157,26 @@ namespace WebApiDowntime.Controllers
                     plc.Close();
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                _logger.LogWarning("Операция чтения из PLC была отменена.");
+                _errorMessage = $"Операция чтения из PLC была отменена.";
+                _logger.LogWarning(_errorMessage);
+                return Result.Failure<AdressDto>(_errorMessage);
             }
             catch (PlcException ex)
             {
-                _logger.LogError(ex, "Ошибка PLC");
+                _errorMessage = $"Ошибка PLC";
+                _logger.LogError(ex, _errorMessage);
+                return Result.Failure<AdressDto>(_errorMessage);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Неизвестная ошибка при чтении данных из PLC.");
+                _errorMessage = $"Неизвестная ошибка при чтении данных из PLC.";
+                _logger.LogError(ex, _errorMessage);
+                return Result.Failure<AdressDto>(_errorMessage);
             }
-            return adresses;
+
+            return Result.Success<AdressDto>(adresses);
         }
 
         private async Task<Result> ChangeValueFromPLCAdressAsync(string ipAddress, int dbNumber, int addresses, int mas, CancellationToken cancellationToken)
