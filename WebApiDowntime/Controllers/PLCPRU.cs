@@ -83,7 +83,7 @@ namespace WebApiDowntime.Controllers
             return adresses;
         }
 
-        [HttpPost("ChangeDatePRU")]
+        [HttpGet("ChangeDatePRU")]
         public async Task<bool> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, int lastMas, CancellationToken cancellationToken)
         {
             Result<AdressDto> resultAdresDto = await ReadValuesFromPLCInAdressAsync(ipAddress, dbNumber, addresses, cancellationToken);
