@@ -84,7 +84,7 @@ namespace WebApiDowntime.Controllers
         }
 
         [HttpGet("ChangeDatePRU")]
-        public async Task<bool> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, int lastMas, CancellationToken cancellationToken)
+        public async Task<(bool isComplite, string? error)> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, int lastMas, CancellationToken cancellationToken)
         {
             Result<AdressDto> resultAdresDto = await ReadValuesFromPLCInAdressAsync(ipAddress, dbNumber, addresses, cancellationToken);
 
@@ -94,18 +94,17 @@ namespace WebApiDowntime.Controllers
                 {
                     Result result = await ChangeValueFromPLCAdressAsync(ipAddress, dbNumber, addresses, mas, cancellationToken);
 
-                    if (result.IsFailure)
-                        return false;
+                    if (result.IsSuccess)
+                        return (true, null);
                     else
-                        return true;
+                        return (false, result.Error);
                 }
                 else
                 {
-                    return false;
+                    return (false, "lastMas != mas in PRU");
                 }
             }
-
-            return false;
+            return (false, resultAdresDto.Error);
         }
 
         private async Task<Result<AdressDto>> ReadValuesFromPLCInAdressAsync(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
