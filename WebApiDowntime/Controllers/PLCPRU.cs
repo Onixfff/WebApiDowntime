@@ -104,6 +104,7 @@ namespace WebApiDowntime.Controllers
             return (false, resultAdresDto.Error);
         }
 
+        [HttpGet("UpdateDateZeroPlc")]
         public async Task<(bool isComplite, string? error)> ZeroPlc(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
         {
             int ZeroMas = 0;
