@@ -104,6 +104,19 @@ namespace WebApiDowntime.Controllers
             return (false, resultAdresDto.Error);
         }
 
+        public async Task<(bool isComplite, string? error)> ZeroPlc(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
+        {
+            int ZeroMas = 0;
+            var isComplite = await ChangeValueFromPLCAdressAsync(ipAddress, dbNumber, addresses, ZeroMas, cancellationToken);
+
+            if (isComplite.IsFailure)
+            {
+                return (false, isComplite.Error);
+            }
+
+            return (true, null);
+        }
+
         private async Task<Result<AdressDto>> ReadValuesFromPLCInAdressAsync(string ipAddress, int dbNumber, int addresses, CancellationToken cancellationToken)
         {
             AdressDto adresses = new AdressDto();
@@ -183,8 +196,6 @@ namespace WebApiDowntime.Controllers
                     {
                         throw new PlcException(ErrorCode.ConnectionError, "Не удалось подключиться к PLC.");
                     }
-
-                    // Читаем данные из указанного адреса
 
                     await plc.WriteAsync($"DB{dbNumber}.DBD{addresses}", mas, cancellationToken);
                 }
