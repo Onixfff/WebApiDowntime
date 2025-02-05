@@ -32,6 +32,7 @@ namespace WebApiDowntime
             // Регистрация контроллеров через DI
             builder.Services.AddScoped<DownTimeController>();
             builder.Services.AddScoped<PLCPRU>();
+            builder.Services.AddScoped<MacaddresstablesController>();
 
             builder.WebHost.ConfigureKestrel(options =>
             {
