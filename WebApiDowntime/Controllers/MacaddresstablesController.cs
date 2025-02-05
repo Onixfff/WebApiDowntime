@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using WebApiDowntime.Models.NetworkDevices;
 
@@ -42,16 +43,24 @@ namespace WebApiDowntime.Controllers
         }
 
         [HttpGet("CheckIp")]
-        public void CheckIp()
+        public Dictionary<string, string> CheckIp()
         {
-            Main();
+            var result = Main();
+            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
+
+            foreach (var item in result)
+            {
+                keyValuePairs.Add(item.ip, item.macAdres);
+            }
+
+            return keyValuePairs;
         }
 
         static List<(string ip, string macAdres)> Main()
         {
             List<(string ip, string macAdres)> result = new List<(string, string)>();
 
-            string baseIp = "192.168.100.100"; // Замените на базовый IP вашей сети
+            string baseIp = "192.168.100."; // Замените на базовый IP вашей сети
             List<string> activeIps = new List<string>();
 
             for (int i = 1; i < 255; i++)

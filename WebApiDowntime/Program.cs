@@ -16,8 +16,8 @@ namespace WebApiDowntime
                                 ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
 
             builder.Services.AddDbContext<MacaddressregistryContext>(options =>
-                            options.UseMySql(builder.Configuration.GetConnectionString("Server"),
-                                ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
+                            options.UseMySql(builder.Configuration.GetConnectionString("Master"),
+                                ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Master"))));
 
             // Добавляем авторизацию
             builder.Services.AddAuthorization();
