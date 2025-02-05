@@ -21,3 +21,7 @@ Accept: application/json
 ###
 
 Put {{WebApiDowntime_HostAddress}}/api/DownTime/SetComparisonResults
+
+###
+GET {{WebApiDowntime_HostAddress}}/api/Macaddressregistry/CheckIp
+Accept: application/json

@@ -1,7 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
 using WebApiDowntime.Context;
 using WebApiDowntime.Controllers;
+using WebApiDowntime.Models.NetworkDevices;
 
 namespace WebApiDowntime
 {
@@ -12,6 +12,10 @@ namespace WebApiDowntime
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<dbContext>(options =>
+                            options.UseMySql(builder.Configuration.GetConnectionString("Server"),
+                                ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
+
+            builder.Services.AddDbContext<MacaddressregistryContext>(options =>
                             options.UseMySql(builder.Configuration.GetConnectionString("Server"),
                                 ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
 
