@@ -29,7 +29,7 @@ namespace WebApiDowntime.Controllers
 
             foreach (var device in devices)
             {
-                if (device.Name == serverName)
+                if (device.Name == serverName.Trim().ToLower())
                 {
                     result.ip = device.IpAdres;
                     break;
