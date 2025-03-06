@@ -27,5 +27,5 @@ GET {{WebApiDowntime_HostAddress}}/api/Macaddressregistry/CheckIp
 Accept: application/json
 
 ###
-GET {{WebApiDowntime_HostAddress}}/api/Macaddressregistry/GetIpAsync?serverName=server
+GET {{WebApiDowntime_HostAddress}}/api/Macaddresstables/GetIpAsync?serverName=server
 Accept: application/json

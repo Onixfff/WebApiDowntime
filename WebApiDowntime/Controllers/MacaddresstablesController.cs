@@ -20,15 +20,17 @@ namespace WebApiDowntime.Controllers
         }
 
         [HttpGet("GetIpAsync")]
-        public async Task<(string? ip, string? error)> GetIpAsync(string serverName)
+        public async Task<Dictionary<string, string>> GetIpAsync(string serverName)
         {
+            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
+
             (string ip, string error) result = new (default!, default!);
 
             List<Macaddresstable> devices = await _dbContext.Macaddresstables.ToListAsync();
 
             foreach (var device in devices)
             {
-                if (device.Name == serverName.Trim().ToLower())
+                if (device.Name.Trim().ToLower() == serverName.Trim().ToLower())
                 {
                     result.ip = device.IpAdres;
                     break;
@@ -38,7 +40,9 @@ namespace WebApiDowntime.Controllers
             if (result.ip == null)
                 result.error = "don`t have this serverName";
 
-            return result;
+                keyValuePairs.Add(result.ip, result.error);
+
+            return keyValuePairs;
         }
 
         [HttpGet("CheckIp")]
