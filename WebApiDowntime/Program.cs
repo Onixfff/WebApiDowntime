@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.X509Certificates;
 using WebApiDowntime.Context;
 using WebApiDowntime.Controllers;
 using WebApiDowntime.Models.NetworkDevices;
@@ -10,6 +11,19 @@ namespace WebApiDowntime
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Добавляем поддержку Windows Service
+            builder.Host.UseWindowsService(options =>
+            {
+                options.ServiceName = "WebApiDowntime";
+            });
+
+            // Настройка логирования в Windows Event Log
+            builder.Logging.AddEventLog(options =>
+            {
+                options.SourceName = "WebApiDowntime";
+                options.LogName = "Application";
+            });
 
             builder.Services.AddDbContext<dbContext>(options =>
                             options.UseMySql(builder.Configuration.GetConnectionString("Server"),
@@ -34,12 +48,13 @@ namespace WebApiDowntime
             builder.Services.AddScoped<PLCPRU>();
             builder.Services.AddScoped<MacaddresstablesController>();
 
+            // Настройка Kestrel из конфигурации
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.ConfigureHttpsDefaults(httpsOptions =>
                 {
-
-                    var certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"]);
+                    var certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                        builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"]);
                     var certPassword = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Password"];
 
                     if (!File.Exists(certPath))
@@ -47,7 +62,20 @@ namespace WebApiDowntime
                         throw new FileNotFoundException($"Сертификат не найден по пути: {certPath}");
                     }
 
-                    httpsOptions.ServerCertificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(certPath, certPassword);
+                    try
+                    {
+                        var certBytes = File.ReadAllBytes(certPath);
+                        var cert = new X509Certificate2(certBytes, certPassword,
+                            X509KeyStorageFlags.MachineKeySet |
+                            X509KeyStorageFlags.PersistKeySet |
+                            X509KeyStorageFlags.Exportable);
+
+                        httpsOptions.ServerCertificate = cert;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Ошибка при загрузке сертификата: {ex.Message}", ex);
+                    }
                 });
             });
 
@@ -65,6 +93,10 @@ namespace WebApiDowntime
 
             // Маршруты для контроллеров API
             app.MapControllers(); // Это нужно для того, чтобы ваши контроллеры работали
+
+            // Логируем запуск приложения
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("WebApiDowntime Service запущен");
 
             app.Run();
         }
