@@ -36,9 +36,11 @@ namespace WebApiDowntime
 
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ListenAnyIP(5048, listenOptions =>
+                options.ConfigureHttpsDefaults(httpsOptions =>
                 {
-                    listenOptions.UseHttps("C:\\Users\\server\\Source\\Repos\\Onixfff\\WebApiDowntime\\WebApiDowntime\\Certificat\\certificate.pfx", "12345");
+                    var certPath = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"];
+                    var certPassword = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Password"];
+                    httpsOptions.ServerCertificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(certPath, certPassword);
                 });
             });
 
