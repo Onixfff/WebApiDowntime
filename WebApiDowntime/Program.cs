@@ -38,8 +38,15 @@ namespace WebApiDowntime
             {
                 options.ConfigureHttpsDefaults(httpsOptions =>
                 {
-                    var certPath = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"];
+
+                    var certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"]);
                     var certPassword = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Password"];
+
+                    if (!File.Exists(certPath))
+                    {
+                        throw new FileNotFoundException($"Сертификат не найден по пути: {certPath}");
+                    }
+
                     httpsOptions.ServerCertificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(certPath, certPassword);
                 });
             });
