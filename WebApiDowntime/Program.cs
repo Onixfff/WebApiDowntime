@@ -1,5 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
+п»їusing Microsoft.EntityFrameworkCore;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using WebApiDowntime.Context;
 using WebApiDowntime.Controllers;
 using WebApiDowntime.Models.NetworkDevices;
@@ -12,13 +14,13 @@ namespace WebApiDowntime
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Добавляем поддержку Windows Service
+            // Р”РѕР±Р°РІР»СЏРµРј РїРѕРґРґРµСЂР¶РєСѓ Windows Service
             builder.Host.UseWindowsService(options =>
             {
                 options.ServiceName = "WebApiDowntime";
             });
 
-            // Настройка логирования в Windows Event Log
+            // РќР°СЃС‚СЂРѕР№РєР° Р»РѕРіРёСЂРѕРІР°РЅРёСЏ РІ Windows Event Log
             builder.Logging.AddEventLog(options =>
             {
                 options.SourceName = "WebApiDowntime";
@@ -33,70 +35,42 @@ namespace WebApiDowntime
                             options.UseMySql(builder.Configuration.GetConnectionString("Master"),
                                 ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Master"))));
 
-            // Добавляем авторизацию
+            // Р”РѕР±Р°РІР»СЏРµРј Р°РІС‚РѕСЂРёР·Р°С†РёСЋ
             builder.Services.AddAuthorization();
 
-            // Добавляем контроллеры для работы с API
-            builder.Services.AddControllers();  // Это необходимо для того, чтобы контроллеры работали корректно
+            // Р”РѕР±Р°РІР»СЏРµРј РєРѕРЅС‚СЂРѕР»Р»РµСЂС‹ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ API
+            builder.Services.AddControllers();  // Р­С‚Рѕ РЅРµРѕР±С…РѕРґРёРјРѕ РґР»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ РєРѕРЅС‚СЂРѕР»Р»РµСЂС‹ СЂР°Р±РѕС‚Р°Р»Рё РєРѕСЂСЂРµРєС‚РЅРѕ
 
-            // Настройка Swagger для OpenAPI
+            // РќР°СЃС‚СЂРѕР№РєР° Swagger РґР»СЏ OpenAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Регистрация контроллеров через DI
+            // Р РµРіРёСЃС‚СЂР°С†РёСЏ РєРѕРЅС‚СЂРѕР»Р»РµСЂРѕРІ С‡РµСЂРµР· DI
             builder.Services.AddScoped<DownTimeController>();
             builder.Services.AddScoped<PLCPRU>();
             builder.Services.AddScoped<MacaddresstablesController>();
 
-            // Настройка Kestrel из конфигурации
-            builder.WebHost.ConfigureKestrel(options =>
-            {
-                options.ConfigureHttpsDefaults(httpsOptions =>
-                {
-                    var certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                        builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"]);
-                    var certPassword = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Password"];
-
-                    if (!File.Exists(certPath))
-                    {
-                        throw new FileNotFoundException($"Сертификат не найден по пути: {certPath}");
-                    }
-
-                    try
-                    {
-                        var certBytes = File.ReadAllBytes(certPath);
-                        var cert = new X509Certificate2(certBytes, certPassword,
-                            X509KeyStorageFlags.MachineKeySet |
-                            X509KeyStorageFlags.PersistKeySet |
-                            X509KeyStorageFlags.Exportable);
-
-                        httpsOptions.ServerCertificate = cert;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception($"Ошибка при загрузке сертификата: {ex.Message}", ex);
-                    }
-                });
-            });
+            // РќР°СЃС‚СЂРѕР№РєР° Kestrel РёР· РєРѕРЅС„РёРіСѓСЂР°С†РёРё
 
             var app = builder.Build();
 
-            // Настройка пайплайна HTTP-запросов
+
+            // РќР°СЃС‚СЂРѕР№РєР° РїР°Р№РїР»Р°Р№РЅР° HTTP-Р·Р°РїСЂРѕСЃРѕРІ
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
             app.UseAuthorization();
 
-            // Маршруты для контроллеров API
-            app.MapControllers(); // Это нужно для того, чтобы ваши контроллеры работали
+            // РњР°СЂС€СЂСѓС‚С‹ РґР»СЏ РєРѕРЅС‚СЂРѕР»Р»РµСЂРѕРІ API
+            app.MapControllers(); // Р­С‚Рѕ РЅСѓР¶РЅРѕ РґР»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ РІР°С€Рё РєРѕРЅС‚СЂРѕР»Р»РµСЂС‹ СЂР°Р±РѕС‚Р°Р»Рё
 
-            // Логируем запуск приложения
+            // Р›РѕРіРёСЂСѓРµРј Р·Р°РїСѓСЃРє РїСЂРёР»РѕР¶РµРЅРёСЏ
             var logger = app.Services.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("WebApiDowntime Service запущен");
+            
+            logger.LogInformation("WebApiDowntime Service Р·Р°РїСѓС‰РµРЅ");
 
             app.Run();
         }
