@@ -29,3 +29,7 @@ Accept: application/json
 ###
 GET {{WebApiDowntime_HostAddress}}/api/Macaddresstables/GetIpAsync?serverName=operator
 Accept: application/json
+
+###
+GET {{WebApiDowntime_HostAddress}}/api/FullData
+Accept: application/json
