@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using WebApiDowntime.Context;
+using WebApiDowntime.Context.spslogger;
 using WebApiDowntime.Controllers;
 using WebApiDowntime.Models.NetworkDevices;
 
@@ -28,6 +26,11 @@ namespace WebApiDowntime
             });
 
             builder.Services.AddDbContext<dbContext>(options =>
+                            options.UseMySql(builder.Configuration.GetConnectionString("Server"),
+                                ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
+
+
+            builder.Services.AddDbContext<SpsloggerContext>(options =>
                             options.UseMySql(builder.Configuration.GetConnectionString("Server"),
                                 ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("Server"))));
 
