@@ -1,0 +1,271 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+.main-wrapper {
+    width: 95%;
+    max-width: 1200px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    font-size: 1.5rem;
+}
+
+/* Фильтр по дате */
+.date-filter {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.date-filter label {
+    font-weight: 600;
+    color: #555;
+}
+
+.date-filter input[type="date"] {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.date-filter button {
+    padding: 8px 20px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.date-filter button:hover {
+    background: #357abd;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+thead tr {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: left;
+    font-weight: bold;
+}
+
+th, td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Стили для строк таблицы */
+tbody tr {
+    transition: all 0.2s;
+}
+
+/* ДНЕВНАЯ СМЕНА - светлая */
+tbody tr.day-shift {
+    background-color: #f0f9ff;
+}
+
+tbody tr.day-shift:hover {
+    background-color: #bae6fd;
+    transform: scale(1.01);
+}
+
+/* НОЧНАЯ СМЕНА - тёмная */
+tbody tr.night-shift {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+tbody tr.night-shift:hover {
+    background-color: #334155;
+    transform: scale(1.01);
+}
+
+/* Чётные/нечётные строки (переопределяется сменой) */
+tbody tr:nth-of-type(even).day-shift {
+    background-color: #e0f2fe;
+}
+
+tbody tr:last-of-type {
+    border-bottom: 3px solid #667eea;
+}
+
+/* Индикатор смены */
+.shift-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.shift-day {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.shift-night {
+    background: #475569;
+    color: #f1f5f9;
+}
+
+/* Рецепт */
+.recipe-cell {
+    font-weight: 600;
+    color: #2563eb;
+    font-family: 'Courier New', monospace;
+}
+
+.night-shift .recipe-cell {
+    color: #60a5fa;
+}
+
+/* Числовые значения */
+.number-cell {
+    text-align: right;
+    font-weight: 500;
+}
+
+.mass-cell {
+    text-align: right;
+    font-weight: 700;
+    color: #059669;
+}
+
+.night-shift .mass-cell {
+    color: #34d399;
+}
+
+.loader {
+    text-align: center;
+    padding: 30px;
+    font-size: 1.1rem;
+    color: #888;
+}
+
+.error {
+    color: #dc2626;
+    text-align: center;
+    padding: 20px;
+    background: #fee2e2;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    th, td {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    .date-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* === АДАПТИВНЫЕ КАРТОЧКИ ДЛЯ МОБИЛЬНЫХ === */
+@media (max-width: 600px) {
+    /* Скрываем заголовки таблицы */
+    thead {
+        display: none;
+    }
+    
+    /* Превращаем строки в карточки */
+    tbody tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    /* Ячейки как строки в карточке */
+    tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border: none;
+        border-bottom: 1px solid #eee;
+        text-align: right;
+    }
+    
+    tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    /* Добавляем подписи к значениям через data-label */
+    tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #666;
+        margin-right: 10px;
+        text-align: left;
+    }
+    
+    /* Особые стили для смен */
+    tbody td:nth-child(2) {
+        justify-content: flex-start;
+    }
+    tbody td:nth-child(2)::before {
+        display: none; /* Не показывать подпись для бейджа смены */
+    }
+    
+    /* Цвета смен для карточек */
+    tr.day-shift {
+        background: #f0f9ff;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    tr.night-shift {
+        background: #1e293b;
+        border-left: 4px solid #64748b;
+        color: #e2e8f0;
+    }
+    
+    tr.night-shift td::before {
+        color: #94a3b8;
+    }
+}

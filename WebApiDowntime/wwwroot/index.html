@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчёт по производству</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <!-- ТАБЛИЦА 1: Основные данные -->
+        <div class="card">
+            <h1>📊 Производство (День/Ночь)</h1>
+            
+            <!-- Фильтр по дате -->
+            <div class="date-filter">
+                <label for="dateInput1">Выберите дату:</label>
+                <input type="date" id="dateInput1">
+                <button onclick="loadDataForDate1()">Загрузить</button>
+            </div>
+
+            <div id="loader1" class="loader">Загрузка данных...</div>
+            
+            <table id="table1" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Дата и время</th>
+                        <th>Смена</th>
+                        <th>Рецепт</th>
+                        <th>Количество</th>
+                        <th>Масса (кг)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody1"></tbody>
+            </table>
+        </div>
+
+        <!-- ТАБЛИЦА 2: Дополнительные данные (если нужно) -->
+        <div class="card">
+            <h1>📊 Производство за месяц</h1>
+            
+            <div class="date-filter">
+                <label for="dateInput2">Выберите дату:</label>
+                <input type="date" id="dateInput2">
+                <button onclick="loadDataForDate2()">Загрузить</button>
+            </div>
+
+            <div id="loader2" class="loader">Загрузка данных...</div>
+            
+            <table id="table2" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Дата и время</th>
+                        <th>Смена</th>
+                        <th>Рецепт</th>
+                        <th>Количество</th>
+                        <th>Масса (кг)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody2"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

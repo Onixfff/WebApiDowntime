@@ -38,6 +38,7 @@
 		<Folder Include="Context\spslogger\" />
 		<Folder Include="Models\NetworkDevices\Interface\" />
 		<Folder Include="Models\spslogger\" />
+		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
 	<ItemGroup>

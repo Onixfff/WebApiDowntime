@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Policy;
 using WebApiDowntime.Context;
 using WebApiDowntime.Context.spslogger;
 using WebApiDowntime.Controllers;
@@ -46,7 +47,20 @@ namespace WebApiDowntime
 
             // Настройка Swagger для OpenAPI
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(option =>
+            {
+                option.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title ="WebApiDowntime",
+                    Version = "V1"
+                });
+
+                option.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+                {
+                    Url = "http://localhost:5051",
+                    Description = "Local HTTP server"
+                });
+            });
 
             // Регистрация контроллеров через DI
             builder.Services.AddScoped<DownTimeController>();
@@ -55,7 +69,6 @@ namespace WebApiDowntime
             builder.Services.AddScoped<MacaddresstablesController>();
 
             // Настройка Kestrel из конфигурации
-
             var app = builder.Build();
 
 
@@ -66,6 +79,7 @@ namespace WebApiDowntime
                 app.UseSwaggerUI();
             }
 
+            app.UseStaticFiles();
             app.UseAuthorization();
 
             // Маршруты для контроллеров API
