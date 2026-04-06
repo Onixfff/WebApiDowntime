@@ -50,6 +50,7 @@ namespace WebApiDowntime
 
             // Регистрация контроллеров через DI
             builder.Services.AddScoped<DownTimeController>();
+            builder.Services.AddScoped<SpsloggerController>();
             builder.Services.AddScoped<PLCPRU>();
             builder.Services.AddScoped<MacaddresstablesController>();
 
