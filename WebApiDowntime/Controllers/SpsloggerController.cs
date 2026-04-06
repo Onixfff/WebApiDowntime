@@ -8,10 +8,10 @@ namespace WebApiDowntime.Controllers
     [Route("api/[controller]")]
     public class SpsloggerController : ControllerBase
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<SpsloggerController> _logger;
         private readonly SpsloggerContext _dbContext;
 
-        public SpsloggerController(ILogger logger, SpsloggerContext dbContext)
+        public SpsloggerController(ILogger<SpsloggerController> logger, SpsloggerContext dbContext)
         {
             _logger = logger;
             _dbContext = dbContext;
@@ -65,10 +65,10 @@ namespace WebApiDowntime.Controllers
                     GROUP BY DateFormatted, Shift, mr.data_52
                     ORDER BY mr.Timestamp ASC;";
 
-            var results = await _dbContext.Set<ReportRecord>()
-                .FromSqlRaw(sql,
-                    new MySqlConnector.MySqlParameter("StartDate", startDate),
-                    new MySqlConnector.MySqlParameter("EndDate", endDate))
+            var results = await _dbContext.Database
+                .SqlQueryRaw<ReportRecord>(sql,
+                    new MySqlConnector.MySqlParameter("@StartDate", startDate),
+                    new MySqlConnector.MySqlParameter("@EndDate", endDate))
                 .ToListAsync();
 
             _logger.LogInformation("Найдено {Count} записей", results.Count);
