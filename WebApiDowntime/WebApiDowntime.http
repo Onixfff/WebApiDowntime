@@ -33,3 +33,7 @@ Accept: application/json
 ###
 GET {{WebApiDowntime_HostAddress}}/api/FullData
 Accept: application/json
+
+###
+GET {{WebApiDowntime_HostAddress}}/api/DataMonth
+Accept: application/json

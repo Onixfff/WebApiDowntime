@@ -1,5 +1,6 @@
 // URL для API
 const API_URL = '/api/Spslogger/FullData';
+const API_URLMonth = '/api/Spslogger/DataMonth';
 
 // Универсальная функция загрузки данных
 async function loadData(url, tableId, loaderId, tbodyId, date) {
@@ -38,6 +39,42 @@ async function loadData(url, tableId, loaderId, tbodyId, date) {
     }
 }
 
+async function loadDataMonth(url, tableId, loaderId, tbodyId, date) {
+    const loader = document.getElementById(loaderId);
+    const table = document.getElementById(tableId);
+    const tbody = document.getElementById(tbodyId);
+
+    try {
+        // Формируем URL с параметром даты
+        const fullUrl = date ? `${url}?date=${date}` : url;
+
+        const response = await fetch(fullUrl);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        renderRowsMonth(data, tbody);
+
+        // Показываем таблицу
+        loader.style.display = 'none';
+        table.style.display = 'table';
+
+    } catch (error) {
+        console.error('Ошибка загрузки:', error);
+
+        loader.innerHTML = `
+            <div class="error">
+                ⚠️ Ошибка загрузки данных<br>
+                <small>${error.message}</small>
+            </div>
+        `;
+
+        table.style.display = 'none';
+    }
+}
+
 // Функция отрисовки строк таблицы
 function renderRows(data, tbody) {
     tbody.innerHTML = '';
@@ -59,17 +96,74 @@ function renderRows(data, tbody) {
         
         // Создаём ячейки
         row.innerHTML = `
-            <td data-label="📅 Дата">${formattedDate}</td>
             <td data-label="🔄 Смена">
                 <span class="shift-badge ${item.shift === 'день' ? 'shift-day' : 'shift-night'}">
                     ${item.shift === 'день' ? '☀️ День' : '🌙 Ночь'}
                 </span>
             </td>
+            <td data-label="📅 Дата">${formattedDate}</td>
             <td class="recipe-cell" data-label="🧪 Рецепт">${item.data52}</td>
             <td class="number-cell" data-label="🔢 Количество">${item.count1}</td>
-            <td class="mass-cell" data-label="⚖️ Масса">${item.mas.toFixed(2)} кг</td>
+            <td class="mass-cell" data-label="⚖️ Масса">${item.mas.toFixed(2)} м³</td>
         `;
         
+        tbody.appendChild(row);
+    });
+}
+
+// Функция отрисовки строк таблицы (месячная агрегация по рецептам)
+function renderRowsMonth(data, tbody) {
+    tbody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px;">📭 Нет данных за выбранный период</td></tr>';
+        return;
+    }
+
+    // 🔹 Шаг 1: Группируем данные по рецепту (data52)
+    const groupedByRecipe = {};
+
+    data.forEach(item => {
+        const recipe = item.data52;
+
+        // Если рецепт ещё не встречался — создаём запись
+        if (!groupedByRecipe[recipe]) {
+            groupedByRecipe[recipe] = {
+                recipe: recipe,
+                countSum: 0,
+                massSum: 0
+            };
+        }
+
+        // Суммируем значения
+        groupedByRecipe[recipe].countSum += item.count1 || 0;
+        groupedByRecipe[recipe].massSum += item.mas || 0;
+    });
+
+    // 🔹 Шаг 2: Формируем диапазон дат (первый и последний день из данных)
+    const validDates = data
+        .map(item => item.dateFormatted)
+        .filter(d => d && d.trim() !== '');
+
+    let dateRange = '—';
+    if (validDates.length > 0) {
+        const first = formatDate(validDates[0]);
+        const last = formatDate(validDates[validDates.length - 1]);
+        dateRange = `${first} | ${last}`;
+    }
+
+    // 🔹 Шаг 3: Отрисовываем строки для каждого рецепта
+    Object.values(groupedByRecipe).forEach(group => {
+        const row = document.createElement('tr');
+        row.className = 'day-shift'; // Можно добавить логику цвета при необходимости
+
+        row.innerHTML = `
+            <td data-label="📅 Период">${dateRange}</td>
+            <td class="recipe-cell" data-label="🧪 Рецепт">${group.recipe}</td>
+            <td class="number-cell" data-label="🔢 Количество">${group.countSum}</td>
+            <td class="mass-cell" data-label="⚖️ Масса">${group.massSum.toFixed(2)} м³</td>
+        `;
+
         tbody.appendChild(row);
     });
 }
@@ -103,6 +197,32 @@ function formatDate(dateStr) {
     }
 }
 
+function formatDateRange(dateStr) {
+    if (!dateStr) return '—';
+
+    try {
+        const months = {
+            'January': '01', 'February': '02', 'March': '03',
+            'April': '04', 'May': '05', 'June': '06',
+            'July': '07', 'August': '08', 'September': '09',
+            'October': '10', 'November': '11', 'December': '12'
+        };
+
+        const parts = dateStr.split(' ');
+        if (parts.length !== 3) return dateStr;
+
+        const day = parts[0].padStart(2, '0');
+        const month = months[parts[1]] || '01';
+        const year = parts[2];
+
+        return `${year}-${month}-${day}`;
+
+    } catch (e) {
+        console.error('Ошибка форматирования:', e);
+        return dateStr;
+    }
+}
+
 // Загрузка данных для таблицы 1
 function loadDataForDate1() {
     const dateInput = document.getElementById('dateInput1').value;
@@ -112,7 +232,7 @@ function loadDataForDate1() {
 // Загрузка данных для таблицы 2
 function loadDataForDate2() {
     const dateInput2 = document.getElementById('dateInput2').value;
-    loadData(API_URL, 'table2', 'loader2', 'tbody2', dateInput2);
+    loadDataMonth(API_URLMonth, 'table2', 'loader2', 'tbody2', dateInput2);
 }
 
 // Автоматическая загрузка при старте (сегодняшняя дата)

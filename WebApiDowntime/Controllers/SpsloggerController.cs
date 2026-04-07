@@ -50,6 +50,67 @@ namespace WebApiDowntime.Controllers
                         ), 0) AS Count1,
                         
                         ROUND((COUNT(mr.dbid) - COALESCE((
+                            SELECT IFNULL(SUM(ms.sum_er), 0)0
+                            FROM spslogger.error_mas ms
+                            WHERE ms.recepte = mr.data_52
+                              AND DATE_FORMAT(IF(TIME(ms.data_err) < '08:00:00', DATE_SUB(ms.data_err, INTERVAL 1 DAY), ms.data_err), '%d %M %Y') = 
+                                  DATE_FORMAT(IF(TIME(mr.Timestamp) < '08:00:00', DATE_SUB(mr.Timestamp, INTERVAL 1 DAY), mr.Timestamp), '%d %M %Y')
+                              AND IF(TIME(ms.data_err) BETWEEN '08:00:00' AND '20:00:00', 'день', 'ночь') = 
+                                  IF(TIME(mr.Timestamp) BETWEEN '08:00:00' AND '20:00:00', 'день', 'ночь')
+                        ), 0)) * 4.32, 2) AS Mas
+                        
+                    FROM spslogger.mixreport mr
+                    WHERE mr.Timestamp >= @StartDate 
+                      AND mr.Timestamp < @EndDate
+                    GROUP BY DateFormatted, Shift, mr.data_52
+                    ORDER BY mr.Timestamp ASC;";
+
+            var results = await _dbContext.Database
+                .SqlQueryRaw<ReportRecord>(sql,
+                    new MySqlConnector.MySqlParameter("@StartDate", startDate),
+                    new MySqlConnector.MySqlParameter("@EndDate", endDate))
+                .ToListAsync();
+
+            _logger.LogInformation("Найдено {Count} записей", results.Count);
+
+            return Ok(results);
+        }
+
+        // 🔹 GET: /api/spslogger/DataMonth?date=2024-01-15
+        [HttpGet("DataMonth")]
+        public async Task<IActionResult> GetDataMonth([FromQuery] DateTime date)
+        {
+            var targetDate = date == default ? DateTime.Today : date.Date;
+
+            var tempData = targetDate;
+
+            var startDate = new DateTime(targetDate.Year, targetDate.Month, 1, 8,0,0);
+            var endDate = targetDate.AddHours(23).AddMinutes(59).AddSeconds(59);
+
+            _logger.LogInformation("Запрос отсчета за {Date} (период: {Start} - {End})",
+                targetDate, startDate, endDate);
+
+            const string sql = @"
+                    SELECT 
+                        IF(TIME(mr.Timestamp) < '08:00:00', 
+                           DATE_FORMAT(DATE_SUB(mr.Timestamp, INTERVAL 1 DAY), '%d %M %Y'), 
+                           DATE_FORMAT(mr.Timestamp, '%d %M %Y')) AS DateFormatted,
+                           
+                        IF(TIME(mr.Timestamp) BETWEEN '08:00:00' AND '20:00:00', 'день', 'ночь') AS Shift,
+                        
+                        mr.data_52 AS Data52,
+                        
+                        COUNT(mr.dbid) - COALESCE((
+                            SELECT IFNULL(SUM(ms.sum_er), 0)
+                            FROM spslogger.error_mas ms
+                            WHERE ms.recepte = mr.data_52
+                              AND DATE_FORMAT(IF(TIME(ms.data_err) < '08:00:00', DATE_SUB(ms.data_err, INTERVAL 1 DAY), ms.data_err), '%d %M %Y') = 
+                                  DATE_FORMAT(IF(TIME(mr.Timestamp) < '08:00:00', DATE_SUB(mr.Timestamp, INTERVAL 1 DAY), mr.Timestamp), '%d %M %Y')
+                              AND IF(TIME(ms.data_err) BETWEEN '08:00:00' AND '20:00:00', 'день', 'ночь') = 
+                                  IF(TIME(mr.Timestamp) BETWEEN '08:00:00' AND '20:00:00', 'день', 'ночь')
+                        ), 0) AS Count1,
+                        
+                        ROUND((COUNT(mr.dbid) - COALESCE((
                             SELECT IFNULL(SUM(ms.sum_er), 0)
                             FROM spslogger.error_mas ms
                             WHERE ms.recepte = mr.data_52
