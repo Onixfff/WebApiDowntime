@@ -84,7 +84,7 @@ namespace WebApiDowntime.Controllers
         }
 
         [HttpGet("ChangeDatePRU")]
-        public async Task<(bool isComplite, string? error)> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, CancellationToken cancellationToken)
+        public async Task<ActionResult<ChangeDatePRUResult>> ChangeDatePRU(string ipAddress, int dbNumber, int addresses, int mas, CancellationToken cancellationToken)
         {
             Result<AdressDto> resultAdresDto = await ReadValuesFromPLCInAdressAsync(ipAddress, dbNumber, addresses, cancellationToken);
 
@@ -94,14 +94,14 @@ namespace WebApiDowntime.Controllers
 
                 if (result.IsSuccess)
                 {
-                    return (true, null);
+                    return new ChangeDatePRUResult { IsComplete = true, Error = null };
                 }
                 else 
                 {
-                    return (false, result.Error);
+                    return new ChangeDatePRUResult { IsComplete = false, Error = result.Error };
                 }
             }
-            return (false, resultAdresDto.Error);
+            return new ChangeDatePRUResult { IsComplete = false, Error = resultAdresDto.Error };
         }
 
         [HttpGet("UpdateDateZeroPlc")]
@@ -198,7 +198,12 @@ namespace WebApiDowntime.Controllers
                         throw new PlcException(ErrorCode.ConnectionError, "Не удалось подключиться к PLC.");
                     }
 
-                    await plc.WriteAsync($"DB{dbNumber}.DBD{addresses}", mas, cancellationToken);
+                    var baseMas = (uint)await plc.ReadAsync($"DB{dbNumber}.DBD{addresses}", cancellationToken);
+
+                    baseMas = baseMas + (uint)mas;
+
+                    await plc.WriteAsync($"DB{dbNumber}.DBD{addresses}", baseMas, cancellationToken);
+
                 }
             }
             catch (OperationCanceledException ex)
@@ -222,5 +227,11 @@ namespace WebApiDowntime.Controllers
 
             return Result.Success();
         }
-    } 
+    }
+
+    public class ChangeDatePRUResult
+    {
+        public bool IsComplete { get; set; }
+        public string? Error { get; set; }
+    }
 }
